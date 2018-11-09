@@ -145,7 +145,14 @@ public:
   		}
   	}
   };
-
+  ~Automata(){
+    for(int i=0; i<estados.size();i++){
+      for(auto& item: estados[i]->aristas){
+        delete item;
+      }
+      delete estados[i];
+    }
+  }
 };
 
 
