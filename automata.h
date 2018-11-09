@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <list>
+#include <set>
 using namespace std;
 class Arista;
 
@@ -41,10 +42,34 @@ public:
 class Automata {
 
   vector<Estado*> estados;
+  set<int> iniciales;
+  set<int> finales;
   int Nestados;
 public:
   Automata(){
-    this->Nestados=0;
+    int inicial;
+    int cantidadfinal;
+    int final;
+    int transicion;
+    cout<<"ingresa"<<endl;
+    cin >> Nestados >> inicial >> cantidadfinal;
+    iniciales.insert(inicial);
+    for(int i = 0; i < cantidadfinal; i ++){
+      cin >> final;
+      finales.insert(final);
+    }
+    cout<<"insertando estados"<<endl;
+    for(int i=0; i<Nestados; i++){
+      insertarestado(i);
+    }
+    cout<<"insertando transiciones"<<endl;
+    for(int j = 0; j < 2*Nestados;j++){
+      cout<<"escriba transicion "<<j<<endl;
+      cin >> inicial >> transicion >> final;
+      insertartransicion(inicial,final,transicion);
+    }
+    cout<<"acabo"<<endl;
+    cout<<endl;
   };
 
   void insertarestado(int x){
@@ -52,7 +77,6 @@ public:
       if(!temp){
         Estado* estado=new Estado(x);
         estados.push_back(estado);
-        Nestados++;
       }else{
         cout<<"Estado ya existente"<<endl;
       }
@@ -87,6 +111,37 @@ public:
     }
     return temp;
   }
+
+  Arista* buscararista(int x, int y){
+    Estado* temp=buscarestado(x);
+    Arista* ptrarista=nullptr;
+    for(auto& item: temp->aristas){
+      if(item->estados[1]->getnombre()==y){
+        ptrarista=item;
+        break;
+      }
+    }
+    return ptrarista;
+  }
+
+  void print() {// Print del grafo
+    cout<<Nestados<<" ";
+    std::set<int>::iterator it=iniciales.begin();
+    cout<<*it<<" ";
+    cout<<finales.size()<<" ";
+    for(std::set<int>::iterator it=finales.begin(); it!=finales.end(); ++it){
+      cout<<*it<<" ";
+    }
+    cout<<endl;
+  	for (int i = 0; i < estados.size(); i++) {
+  		for ( auto& item : estados[i]->aristas )
+  		{
+  			cout<<item->estados[0]->getnombre()<<" ";
+        cout<<item->getentrada()<<" ";
+        cout<<item->estados[1]->getnombre()<<endl;
+  		}
+  	}
+  };
 
 };
 
