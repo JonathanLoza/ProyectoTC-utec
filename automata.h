@@ -47,6 +47,9 @@ class Automata {
   int Nestados;
 public:
   Automata(){
+    Nestados=0;
+  };
+  void read(){
     int inicial;
     int cantidadfinal;
     int final;
@@ -70,8 +73,8 @@ public:
     }
     cout<<"acabo"<<endl;
     cout<<endl;
-  };
 
+  }
   void insertarestado(int x){
       Estado* temp=buscarestado(x);
       if(!temp){
