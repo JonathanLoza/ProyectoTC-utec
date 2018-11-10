@@ -6,6 +6,6 @@ using namespace std;
 int main() {
   Automata automata;
   automata.read();
-  automata.print();
+  automata.matrizequivalencia();
   return 0;
 }

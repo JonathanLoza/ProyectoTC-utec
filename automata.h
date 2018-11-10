@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <list>
+#include <algorithm>
 #include <set>
 using namespace std;
 class Arista;
@@ -19,6 +20,7 @@ public:
   int getnombre(){
     return Nombre;
   }
+
 };
 
 class Arista{
@@ -54,26 +56,21 @@ public:
     int cantidadfinal;
     int final;
     int transicion;
-    cout<<"ingresa"<<endl;
+    cout<<"Ingresa"<<endl;
     cin >> Nestados >> inicial >> cantidadfinal;
     iniciales.insert(inicial);
     for(int i = 0; i < cantidadfinal; i ++){
       cin >> final;
       finales.insert(final);
     }
-    cout<<"insertando estados"<<endl;
     for(int i=0; i<Nestados; i++){
       insertarestado(i);
     }
-    cout<<"insertando transiciones"<<endl;
     for(int j = 0; j < 2*Nestados;j++){
-      cout<<"escriba transicion "<<j<<endl;
       cin >> inicial >> transicion >> final;
       insertartransicion(inicial,final,transicion);
     }
-    cout<<"acabo"<<endl;
     cout<<endl;
-
   }
   void insertarestado(int x){
       Estado* temp=buscarestado(x);
@@ -126,6 +123,78 @@ public:
     }
     return ptrarista;
   }
+
+  bool distinguible(Estado* nodo1,Estado* nodo2){
+    if(nodo1 == nodo2){return false;}
+    Estado* nodo1_salida0;
+    Estado* nodo1_salida1;
+    Estado* nodo2_salida0;
+    Estado* nodo2_salida1;
+    for(auto item: nodo1->aristas){
+      if(item->getentrada()==0){
+        nodo1_salida0=item->estados[1];
+      }
+      else if(item->getentrada()==1){
+        nodo1_salida1= item->estados[1];
+      }
+    }
+    for(auto item: nodo2->aristas){
+      if(item->getentrada()==0){
+        nodo2_salida0=item->estados[1];
+      }
+      else if(item->getentrada()==1){
+        nodo2_salida1=item->estados[1];
+      }
+    }
+    if((finales.find(nodo1_salida0->getnombre())!=finales.end())&&(finales.find(nodo2_salida0->getnombre())==finales.end())){
+      return true;
+    }
+    else if((finales.find(nodo1_salida0->getnombre())==finales.end())&&(finales.find(nodo2_salida0->getnombre())!= finales.end())){
+      return true;
+    }
+    else if((finales.find(nodo1_salida1->getnombre())!=finales.end())&&(finales.find(nodo2_salida1->getnombre())== finales.end())){
+      return true;
+    }
+    else if((finales.find(nodo1_salida1->getnombre())==finales.end())&&(finales.find(nodo2_salida1->getnombre())!= finales.end())){
+      return true;
+    }
+    else{
+      if(distinguible(nodo1_salida0,nodo2_salida0))
+        return true;
+      else if(distinguible(nodo1_salida1,nodo2_salida1))
+        return true;
+      else
+        return false;
+    }
+  }
+
+  void matrizequivalencia(){
+    int equimatrix [Nestados][Nestados];
+    for(int i = 0; i < Nestados; i++){
+      for(int j = 0; j < Nestados; j++){
+        equimatrix[i][j] = 1;
+      }
+    }
+
+    for(int i = 0; i < Nestados; i++){
+      Estado* nodo1 = estados[i];
+      for(int j = 0; j < Nestados; j++){
+        Estado* nodo2 = estados[j];
+        if(nodo1 != nodo2){
+          if(distinguible(nodo1,nodo2)){
+            equimatrix[i][j] = 0;
+          }
+        }
+      }
+    }
+    for(int z = 0; z < Nestados; z++){
+      for(int y = 0; y < Nestados; y++){
+          cout << equimatrix[z][y] << " ";
+      }
+      cout << endl;
+    }
+  }
+
 
   void print() {// Print del grafo
     cout<<Nestados<<" ";
