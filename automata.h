@@ -7,21 +7,7 @@
 #include <algorithm>
 #include <set>
 using namespace std;
-class Arista;
-
-class Estado{
-  int Nombre;
-public:
-  list<Arista*> aristas;
-  Estado(int x){
-    this-> Nombre=x;
-  };
-
-  int getnombre(){
-    return Nombre;
-  }
-
-};
+class Estado;
 
 class Arista{
   int Entrada;
@@ -36,10 +22,31 @@ public:
     this->estados[0]=estado1;
     this->estados[1]=estado2;
     this->Entrada=cadena;
-  };
+  }
 
 };
 
+class Estado{
+  int Nombre;
+public:
+  list<Arista*> aristas;
+  Estado(int x){
+    this-> Nombre=x;
+  };
+
+  int getnombre(){
+    return Nombre;
+  }
+
+  int getSalida(int x){
+    for(auto item: this->aristas){
+      if(item->getentrada()==x){
+        return item->estados[1]->getnombre();
+      }
+    }
+  }
+
+};
 
 class Automata {
 
@@ -180,9 +187,18 @@ public:
       Estado* nodo1 = estados[i];
       for(int j = 0; j < Nestados; j++){
         Estado* nodo2 = estados[j];
-        if(nodo1 != nodo2){
-          if(distinguible(nodo1,nodo2)){
-            equimatrix[i][j] = 0;
+        if(nodo1 != nodo2 && equimatrix[nodo1->getnombre()][nodo2->getnombre()] == 1){
+          if((finales.find(nodo1->getnombre())!=finales.end())&&(finales.find(nodo2->getnombre())==finales.end())){
+              equimatrix[nodo1->getnombre()][nodo2->getnombre()] = 0;
+              equimatrix[nodo2->getnombre()][nodo1->getnombre()] = 0;
+          }
+          else if((finales.find(nodo2->getnombre())!=finales.end())&&(finales.find(nodo1->getnombre())==finales.end())){
+              equimatrix[nodo1->getnombre()][nodo2->getnombre()] = 0;
+              equimatrix[nodo2->getnombre()][nodo1->getnombre()] = 0;
+          }
+          else if(distinguible(nodo1,nodo2)){
+            equimatrix[nodo1->getnombre()][nodo2->getnombre()] = 0;
+            equimatrix[nodo2->getnombre()][nodo1->getnombre()] = 0;
           }
         }
       }
