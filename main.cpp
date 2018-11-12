@@ -6,9 +6,9 @@ using namespace std;
 int main() {
   Automata automata;
   automata.read();
-  automata.matrizequivalencia();
-  //automata.Algoritmo3();
-  //automata.Brzozowski();
+  automata.matrizequivalencia();//Algoritmo 2
+  //automata.Algoritmo3();//Algoritmo 2 optimizado
+  //automata.Brzozowski();//hacer print para ver el nuevo automata
 
   //automata.print();
 
