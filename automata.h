@@ -6,6 +6,7 @@
 #include <list>
 #include <set>
 #include <map>
+#include <algorithm>
 #include "queue.h"
 using namespace std;
 class Estado;
@@ -88,6 +89,162 @@ public:
     Nestados=0;
   };
 
+
+  void Hopcroft(){
+    vector<set<int>> P;
+    vector<set<int>> W;
+    set<int> allestados;
+    for(int i=0; i<Nestados;i++){
+      allestados.insert(estados[i]->getnombre());
+    }
+    set<int> ends=finales;
+    set<int> noends;
+    set<int> intersect;
+    set<int> difference;
+    set_difference(allestados.begin(), allestados.end(), ends.begin(), ends.end(),inserter(noends, noends.end()));
+    P.push_back(ends);
+    P.push_back(noends);
+    W.push_back(ends);
+    set<int> X;
+    vector<set<int>>::iterator iteW;
+    vector<
+    set<int>>::iterator iteP;
+    set<int> A;
+    while(!W.empty()){
+      iteW=W.begin();
+      A=(*iteW);
+      for(int c=0;c<2;c++){
+        for(int i=0;i<Nestados;i++){
+          for(auto item:A){
+            if(NextEstadowithX(i,c)->getnombre()==item)
+              X.insert(i);
+          }
+        }
+        for(auto Y:P){
+          set_difference(Y.begin(), Y.end(), X.begin(), X.end(),inserter(difference, difference.end()));
+          set_intersection(X.begin(),X.end(),Y.begin(),Y.end(),inserter(intersect,intersect.begin()));
+          if(!intersect.empty() && !difference.empty()){
+
+          }
+        }
+
+
+
+      }
+    }
+
+
+  }
+
+  void Moore(){
+    int** equimatrix=Algoritmo3();
+    map<Estado*,bool> visitados;
+    for(int i=0; i<Nestados;i++){
+      visitados.insert(pair<Estado*,bool> (estados[i],false));
+    }
+    int count=0;
+    Estado* newEstado;
+    vector<Estado*> newestados;
+    for(int i=0;i<Nestados;i++){
+      if(visitados[estados[i]]==false){
+        newEstado=new Estado(count);
+        newestados.push_back(newEstado);
+        count++;
+        visitados[estados[i]]=true;
+        newEstado->prevestados.insert(estados[i]->getnombre());
+        for(int j=0;j<Nestados;j++){
+          if(i!=j && equimatrix[i][j]==1){
+            newEstado->prevestados.insert(estados[j]->getnombre());
+            visitados[estados[j]]=true;
+          }
+        }
+      }
+    }
+
+    for(int i=0;i<newestados.size();i++){
+      cout<<newestados[i]->getnombre()<<" : ";
+      for(auto item: newestados[i]->prevestados){
+        cout<<item<<" ";
+      }
+      cout<<endl;
+    }
+
+    Arista* arista0;
+    Arista* arista1;
+    Arista* nueva;
+    bool cero=false;
+    bool uno=false;
+    for(int i=0;i<newestados.size();i++){
+      setit=newestados[i]->prevestados.begin();
+      for(auto item: mapestados[(*setit)]->aristas){
+        if(item->getentrada()==0)
+          arista0=item;
+        if(item->getentrada()==1)
+          arista1=item;
+      }
+      for(int j=0;j<newestados.size();j++){
+        if(!cero && newestados[j]->prevestados.find(arista0->estados[1]->getnombre())!=newestados[j]->prevestados.end()){
+          nueva=new Arista(newestados[i],newestados[j],0);
+          newestados[i]->aristas.push_back(nueva);
+          cero=true;
+        }
+        if(!uno && newestados[j]->prevestados.find(arista1->estados[1]->getnombre())!=newestados[j]->prevestados.end()){
+          nueva=new Arista(newestados[i],newestados[j],1);
+          newestados[i]->aristas.push_back(nueva);
+          uno=true;
+        }
+        if(cero && uno){
+          break;
+        }
+        cero=false;
+        uno=false;
+      }
+
+    }
+    for(int i=0;i<newestados.size();i++){
+      cout<<newestados[i]->getnombre()<<" : ";
+      for(auto item: newestados[i]->aristas){
+        cout<<item->estados[1]->getnombre()<<":"<<item->getentrada()<<" ";
+      }
+      cout<<endl;
+    }
+
+    bool esfinal=false;
+    bool esinicial=false;
+    set<int> newfinal;
+    set<int> newinicial;
+    for(int i=0;i<newestados.size();i++){
+      for(setit=finales.begin();setit!=finales.end();++setit){
+        if(newestados[i]->prevestados.find(*setit) != newestados[i]->prevestados.end()){
+          esfinal=true;
+          break;
+        }
+      }
+      if(esfinal){
+        newfinal.insert(newestados[i]->getnombre());
+      }
+      for(setit=iniciales.begin();setit!=iniciales.end();++setit){
+        if(newestados[i]->prevestados.find(*setit) != newestados[i]->prevestados.end()){
+          esinicial=true;
+          break;
+        }
+      }
+      if(esinicial){
+        newinicial.insert(newestados[i]->getnombre());
+      }
+      esinicial=false;
+      esfinal=false;
+    }
+    iniciales.clear();
+    finales.clear();
+    finales=newfinal;
+    iniciales=newinicial;
+    estados.clear();
+    estados=newestados;
+    Nestados=newestados.size();
+
+  }
+
   bool distinguible(Estado* nodo1,Estado* nodo2){
     if(nodo1 == nodo2){return false;}
     Estado* nodo1_salida0;
@@ -132,8 +289,11 @@ public:
     }
   }
 
-  void matrizequivalencia(){
-    int equimatrix [Nestados][Nestados];
+  int** matrizequivalencia(){
+    int **equimatrix=new int*[Nestados];
+    for(int x=0;x<Nestados;x++){
+      equimatrix[x]=new int[Nestados];
+    }
     for(int i = 0; i < Nestados; i++){
       for(int j = 0; j < Nestados; j++){
         equimatrix[i][j] = 1;
@@ -166,9 +326,10 @@ public:
       }
       cout << endl;
     }
+    return equimatrix;
   }
 
-  void Algoritmo3(){
+  int** Algoritmo3(){
 
     for(int i=0; i<Nestados;i++){
       auto estado1=mapestados[i];
@@ -209,7 +370,10 @@ public:
 
         }
     }
-    int equimatrix [Nestados][Nestados];
+    int **equimatrix=new int*[Nestados];
+    for(int x=0;x<Nestados;x++){
+      equimatrix[x]=new int[Nestados];
+    }
     for(int i = 0; i < Nestados; i++){
       for(int j = 0; j < Nestados; j++){
         equimatrix[i][j] = 1;
@@ -243,7 +407,7 @@ public:
       cout << endl;
     }
 
-
+    return equimatrix;
   }
 
   void Brzozowski(){
@@ -487,6 +651,13 @@ public:
     return temp;
   }
 
+  Estado* NextEstadowithX(int x, int transicion){
+    for(auto item:mapestados[x]->aristas){
+      if(item->getentrada()==transicion)
+        return item->estados[1];
+    }
+  }
+
   Arista* buscararista(int x, int y){
     Estado* temp=buscarestado(x);
     Arista* ptrarista=nullptr;
@@ -498,6 +669,14 @@ public:
     }
     return ptrarista;
   }
+
+  Arista* buscartransicionX(int x, int transicion){
+    for(auto item:mapestados[x]->aristas){
+      if(item->getentrada()==transicion)
+        return item;
+    }
+  }
+
   void clearautomata(){
     for(int i=0; i<estados.size();i++){
       for(auto& item: estados[i]->aristas){
