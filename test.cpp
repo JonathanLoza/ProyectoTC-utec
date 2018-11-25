@@ -1,37 +1,34 @@
 #include "iostream"
 #include "algorithm"
 #include "set"
+#include "vector"
 
 using namespace std;
 
 int main(){
 
+set<set<int>> x;
+set<int> a;
+set<int> b;
+set<int> c;
+set<int> e;
 
-  set<int> a;
-  for(int i=0;i<10;i++){
-    a.insert(i);
-  }
+a.insert(1);
+b.insert(10);
+b.insert(1);
+x.insert(b);
+x.insert(a);
+c.insert(1);
+c.insert(2);
+cout<<x.size();
 
-  set<int>::iterator ite;
-  int j=50;
-  for(ite=a.begin();ite!=a.end();){
-    if((*ite)%2==0){
-      cout<<*ite<<endl;
-      ite=
-      a.erase(ite++);
-    }
-    if((*ite)%3==0){
-      a.insert(j);
-      j++;
-      ++ite;
-    }
-    //cout<<*ite<<endl;
-  }
-  for(auto item:a){
-    cout<<item<<" ";
-  }
+if(x.find(c)!=x.end())
+  cout<<"true"<<endl;
+else
+  cout<<"false"<<endl;
 
-
-
+if(e.begin()==e.end())
+  cout<<"bica"<<endl;
+cout<<e.size();
   return 0;
 }

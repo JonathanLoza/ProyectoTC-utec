@@ -9,10 +9,10 @@ int main() {
   //automata.matrizequivalencia();//Algoritmo 2
   //automata.Algoritmo3();//Algoritmo 2 optimizado
   //automata.Brzozowski();//hacer print para ver el nuevo automata
+  //automata.print();
   //automata.Moore();
   automata.Hopcroft();
   cout<<endl;
-  //automata.print();
-
+  automata.print();
   return 0;
 }

@@ -91,8 +91,8 @@ public:
 
 
   void Hopcroft(){
-    vector<set<int>> P;
-    vector<set<int>> W;
+    set<set<int>> P;
+    set<set<int>> W;
     set<int> allestados;
     for(int i=0; i<Nestados;i++){
       allestados.insert(estados[i]->getnombre());
@@ -102,17 +102,18 @@ public:
     set<int> intersect;
     set<int> difference;
     set_difference(allestados.begin(), allestados.end(), ends.begin(), ends.end(),inserter(noends, noends.end()));
-    P.push_back(ends);
-    P.push_back(noends);
-    W.push_back(ends);
+    P.insert(ends);
+    P.insert(noends);
+    W.insert(ends);
+    set<set<int>>::iterator iteW;
+    set<set<int>>::iterator iteP;
     set<int> X;
-    vector<set<int>>::iterator iteW;
-    vector<
-    set<int>>::iterator iteP;
     set<int> A;
+    set<set<int>> temporal;
     while(!W.empty()){
       iteW=W.begin();
       A=(*iteW);
+      W.erase(iteW);
       for(int c=0;c<2;c++){
         for(int i=0;i<Nestados;i++){
           for(auto item:A){
@@ -120,55 +121,51 @@ public:
               X.insert(i);
           }
         }
-        for(auto Y:P){
-          set_difference(Y.begin(), Y.end(), X.begin(), X.end(),inserter(difference, difference.end()));
-          set_intersection(X.begin(),X.end(),Y.begin(),Y.end(),inserter(intersect,intersect.begin()));
+        iteP=P.begin();
+        while(iteP!=P.end()){
+          set_difference((*iteP).begin(), (*iteP).end(), X.begin(), X.end(),inserter(difference, difference.end()));
+          set_intersection(X.begin(),X.end(),(*iteP).begin(),(*iteP).end(),inserter(intersect,intersect.begin()));
           if(!intersect.empty() && !difference.empty()){
-
+            set<int> temp=*iteP;
+            P.erase(iteP);
+            P.insert(difference);
+            P.insert(intersect);
+            if(W.find(temp)!=W.end()){
+              W.erase(temp);
+              W.insert(difference);
+              W.insert(intersect);
+            }
+            else{
+              if(intersect.size()<=difference.size()){
+                W.insert(intersect);
+              }
+              else{
+                W.insert(difference);
+              }
+            }
           }
+          else{
+            temporal.insert(*iteP);
+            P.erase(*iteP);
+          }
+          iteP=P.begin();
+          difference.clear();
+          intersect.clear();
         }
-
-
-
+        P=temporal;
+        temporal.clear();
+        X.clear();
       }
     }
-
-
-  }
-
-  void Moore(){
-    int** equimatrix=Algoritmo3();
-    map<Estado*,bool> visitados;
-    for(int i=0; i<Nestados;i++){
-      visitados.insert(pair<Estado*,bool> (estados[i],false));
-    }
-    int count=0;
-    Estado* newEstado;
+    Estado* nuevo;
     vector<Estado*> newestados;
-    for(int i=0;i<Nestados;i++){
-      if(visitados[estados[i]]==false){
-        newEstado=new Estado(count);
-        newestados.push_back(newEstado);
-        count++;
-        visitados[estados[i]]=true;
-        newEstado->prevestados.insert(estados[i]->getnombre());
-        for(int j=0;j<Nestados;j++){
-          if(i!=j && equimatrix[i][j]==1){
-            newEstado->prevestados.insert(estados[j]->getnombre());
-            visitados[estados[j]]=true;
-          }
-        }
-      }
+    int count=0;
+    for(auto item:P){
+      nuevo=new Estado(count);
+      newestados.push_back(nuevo);
+      nuevo->prevestados=item;
+      count++;
     }
-
-    for(int i=0;i<newestados.size();i++){
-      cout<<newestados[i]->getnombre()<<" : ";
-      for(auto item: newestados[i]->prevestados){
-        cout<<item<<" ";
-      }
-      cout<<endl;
-    }
-
     Arista* arista0;
     Arista* arista1;
     Arista* nueva;
@@ -201,13 +198,116 @@ public:
       }
 
     }
+    bool esfinal=false;
+    bool esinicial=false;
+    set<int> newfinal;
+    set<int> newinicial;
     for(int i=0;i<newestados.size();i++){
+      for(setit=finales.begin();setit!=finales.end();++setit){
+        if(newestados[i]->prevestados.find(*setit) != newestados[i]->prevestados.end()){
+          esfinal=true;
+          break;
+        }
+      }
+      if(esfinal){
+        newfinal.insert(newestados[i]->getnombre());
+      }
+      for(setit=iniciales.begin();setit!=iniciales.end();++setit){
+        if(newestados[i]->prevestados.find(*setit) != newestados[i]->prevestados.end()){
+          esinicial=true;
+          break;
+        }
+      }
+      if(esinicial){
+        newinicial.insert(newestados[i]->getnombre());
+      }
+      esinicial=false;
+      esfinal=false;
+    }
+    iniciales.clear();
+    finales.clear();
+    finales=newfinal;
+    iniciales=newinicial;
+    estados.clear();
+    estados=newestados;
+    Nestados=newestados.size();
+
+
+  }
+
+  void Moore(){
+    int** equimatrix=Algoritmo3();
+    map<Estado*,bool> visitados;
+    for(int i=0; i<Nestados;i++){
+      visitados.insert(pair<Estado*,bool> (estados[i],false));
+    }
+
+    int count=0;
+    Estado* newEstado;
+    vector<Estado*> newestados;
+
+    for(int i=0;i<Nestados;i++){
+      if(visitados[estados[i]]==false){
+        newEstado=new Estado(count);
+        newestados.push_back(newEstado);
+        count++;
+        visitados[estados[i]]=true;
+        newEstado->prevestados.insert(estados[i]->getnombre());
+        for(int j=0;j<Nestados;j++){
+          if(i!=j && equimatrix[i][j]==1){
+            newEstado->prevestados.insert(estados[j]->getnombre());
+            visitados[estados[j]]=true;
+          }
+        }
+      }
+    }
+
+    for(int i=0;i<newestados.size();i++){
+      cout<<newestados[i]->getnombre()<<" : ";
+      for(auto item: newestados[i]->prevestados){
+        cout<<item<<" ";
+      }
+      cout<<endl;
+    }
+    Arista* arista0;
+    Arista* arista1;
+    Arista* nueva;
+    bool cero=false;
+    bool uno=false;
+    for(int i=0;i<newestados.size();i++){
+      setit=newestados[i]->prevestados.begin();
+      for(auto item: mapestados[(*setit)]->aristas){
+        if(item->getentrada()==0)
+          arista0=item;
+        if(item->getentrada()==1)
+          arista1=item;
+      }
+      for(int j=0;j<newestados.size();j++){
+        if(!cero && newestados[j]->prevestados.find(arista0->estados[1]->getnombre())!=newestados[j]->prevestados.end()){
+          nueva=new Arista(newestados[i],newestados[j],0);
+          newestados[i]->aristas.push_back(nueva);
+          cero=true;
+        }
+        if(!uno && newestados[j]->prevestados.find(arista1->estados[1]->getnombre())!=newestados[j]->prevestados.end()){
+          nueva=new Arista(newestados[i],newestados[j],1);
+          newestados[i]->aristas.push_back(nueva);
+          uno=true;
+        }
+        if(cero && uno){
+          break;
+        }
+        cero=false;
+        uno=false;
+      }
+
+    }
+    /*for(int i=0;i<newestados.size();i++){
       cout<<newestados[i]->getnombre()<<" : ";
       for(auto item: newestados[i]->aristas){
         cout<<item->estados[1]->getnombre()<<":"<<item->getentrada()<<" ";
       }
       cout<<endl;
-    }
+    }*/
 
     bool esfinal=false;
     bool esinicial=false;
@@ -367,7 +467,6 @@ public:
             parsiguiente=vectorpares[i];
             vectorpares[j]->parestados.push_back(parsiguiente);
           }
-
         }
     }
     int **equimatrix=new int*[Nestados];
@@ -415,6 +514,9 @@ public:
     reachdet();
     reverse();
     reachdet();
+    for(auto item:estados){
+      item->prevestados.clear();
+    }
   }
 
   void reachdet(){
@@ -545,7 +647,6 @@ public:
     else{
       newestados.push_back(estado);
     }
-
     existe=false;
     set<int> newfinal;
     for(int i=0;i<newestados.size();i++){
